@@ -1,0 +1,23 @@
+.grouped-bar-container {
+  padding: 32px;
+  background-color: #ffffff;
+  min-height: 500px;
+  font-family: system-ui, sans-serif;
+}
+.grouped-bar-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+.grouped-bar-title {
+  color: #0f172a;
+  margin: 0 0 24px 0;
+  font-size: 20px;
+}
+.grouped-bar-chart-wrapper {
+  height: 400px;
+  width: 100%;
+}
