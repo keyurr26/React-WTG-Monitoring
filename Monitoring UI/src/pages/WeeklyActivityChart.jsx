@@ -126,17 +126,22 @@ const WeeklyActivityChart = () => {
           height: '100%',
           display: 'flex',
           alignItems: 'center',
-          paddingLeft: '8px',
-          paddingRight: '8px',
-          boxSizing: 'border-box',
-          color: '#ffffff',
-          fontSize: '13px',
-          fontWeight: 600,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis'
+          paddingLeft: '12px',
+          paddingRight: '20px',
+          boxSizing: 'border-box'
         }}>
-          {value}
+          <span style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 600,
+            display: 'block',
+            width: '100%'
+          }}>
+            {value}
+          </span>
         </div>
       </foreignObject>
     );
@@ -310,10 +315,15 @@ const WeeklyActivityChart = () => {
                       {/* Invisible gap block pushes the actual activity block to the correct start date */}
                       <Bar dataKey={`gap_${i}`} stackId="a" fill="transparent" isAnimationActive={false} />
                       {/* Colored activity block */}
-                      <Bar dataKey={`act_${i}_duration`} stackId="a" radius={[4, 4, 4, 4]}>
+                      <Bar dataKey={`act_${i}_duration`} stackId="a" radius={[12, 12, 12, 12]}>
                         <LabelList dataKey={`act_${i}_name`} content={<CustomBarLabel />} />
                         {chartData.map((entry, index) => (
-                          <Cell key={`cell-${i}-${index}`} fill={entry[`act_${i}_color`] || 'transparent'} />
+                          <Cell 
+                            key={`cell-${i}-${index}`} 
+                            fill={entry[`act_${i}_color`] || 'transparent'} 
+                            stroke="#ffffff"
+                            strokeWidth={entry[`act_${i}_color`] ? 4 : 0}
+                          />
                         ))}
                       </Bar>
                     </React.Fragment>
