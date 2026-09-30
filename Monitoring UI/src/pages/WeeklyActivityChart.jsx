@@ -1,0 +1,331 @@
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  LabelList,
+} from 'recharts';
+import { weeksData } from './WeeklyActivityDashboard';
+import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Button } from '@mui/material';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+
+const activityColors = {
+  SOIL: '#8b5cf6',
+  EXC: '#22c55e',
+  PCC: '#f59e0b',
+  CONDUIT: '#3b82f6',
+  ANCHOR: '#ef4444',
+  'T1 INSTALLATION': '#6366f1',
+  'TOWER INSTALLATION': '#10b981',
+  'NACELLE INSTALLATION': '#f59e0b',
+  'ROTOR HUB INSTALLATION': '#3b82f6',
+  'BLADE INSTALLATION': '#a855f7',
+};
+
+const parseDateStr = (dateStr) => {
+  if (!dateStr) return new Date();
+  const [y, m, d] = dateStr.split('T')[0].split('-');
+  return new Date(y, m - 1, d);
+};
+
+const WeeklyActivityChart = () => {
+  const [selectedWeekId, setSelectedWeekId] = useState(weeksData[0].week_id);
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [chartWidth, setChartWidth] = useState(1000);
+  const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const delta = e.deltaY * -1.5;
+        setChartWidth(prev => Math.min(4000, Math.max(600, prev + delta)));
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  const rawData = useMemo(() => {
+    return weeksData.find(w => w.week_id === selectedWeekId) || weeksData[0];
+  }, [selectedWeekId]);
+
+  const availableCategories = useMemo(() => {
+    const cats = new Set();
+    rawData.turbines.forEach(t => t.activities.forEach(a => cats.add(a.category)));
+    return Array.from(cats);
+  }, [rawData]);
+
+  const { chartData, maxActs, weekStart, totalDays } = useMemo(() => {
+    const weekStartObj = parseDateStr(rawData.week_start);
+    let maxActivities = 0;
+    let maxDate = weekStartObj;
+
+    const formattedData = [];
+
+    rawData.turbines.forEach(t => {
+      const tActs = categoryFilter ? t.activities.filter(a => a.category === categoryFilter) : t.activities;
+
+      // Only include turbines that have activities matching the filter
+      if (tActs.length > 0) {
+        let currentEnd = weekStartObj;
+        const obj = { name: t.turbine };
+
+        maxActivities = Math.max(maxActivities, tActs.length);
+
+        tActs.forEach((act, i) => {
+          const start = parseDateStr(act.act_planned_start_date);
+          const end = parseDateStr(act.act_planned_end_date);
+
+          if (end > maxDate) maxDate = end;
+
+          // Calculate transparent gap from previous activity's end
+          const gapDays = Math.max(0, (start - currentEnd) / 86400000);
+          const durationDays = Math.round((end - start) / 86400000) + 1;
+
+          const baseName = act.activity_name.split(' (')[0];
+          const color = activityColors[baseName.toUpperCase()] || '#cbd5e1';
+
+          const displayLabel = `${baseName} (${durationDays} day${durationDays !== 1 ? 's' : ''})`;
+
+          obj[`gap_${i}`] = gapDays;
+          obj[`act_${i}_duration`] = durationDays;
+          obj[`act_${i}_name`] = displayLabel;
+          obj[`act_${i}_color`] = color;
+          obj[`act_${i}_full`] = displayLabel;
+
+          currentEnd = new Date(end.getTime() + 86400000); // end of that day
+        });
+        formattedData.push(obj);
+      }
+    });
+
+    // Make sure we always show at least the standard 7 days
+    const computedDays = Math.max(7, Math.round((maxDate - weekStartObj) / 86400000) + 1);
+
+    return { chartData: formattedData, maxActs: maxActivities, weekStart: weekStartObj, totalDays: computedDays };
+  }, [rawData, categoryFilter]);
+
+  const CustomBarLabel = (props) => {
+    const { x, y, width, height, value } = props;
+    if (width < 30) return null;
+
+    return (
+      <foreignObject x={x} y={y} width={width} height={height}>
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          paddingLeft: '8px',
+          paddingRight: '8px',
+          boxSizing: 'border-box',
+          color: '#ffffff',
+          fontSize: '13px',
+          fontWeight: 600,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }}>
+          {value}
+        </div>
+      </foreignObject>
+    );
+  };
+
+  const CustomXAxisTick = ({ x, y, payload }) => {
+    const val = payload.value;
+    const d = new Date(weekStart.getTime() + val * 86400000);
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text x={0} y={0} dy={16} textAnchor="middle" fill="#334155" fontSize={13} fontWeight={600}>
+          {d.getDate()}
+        </text>
+        <text x={0} y={0} dy={34} textAnchor="middle" fill="#64748b" fontSize={12}>
+          {d.toLocaleString('en-US', { month: 'short' })} {d.getFullYear()}
+        </text>
+      </g>
+    );
+  };
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <Paper elevation={3} sx={{ p: 2, bgcolor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e2e8f0', minWidth: '200px' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, color: '#0f172a', borderBottom: '1px solid #e2e8f0', pb: 1 }}>
+            {data.name} Activities
+          </Typography>
+          {Array.from({ length: maxActs }).map((_, i) => {
+            if (data[`act_${i}_name`]) {
+              return (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: data[`act_${i}_color`], mr: 1.5 }} />
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#334155' }}>
+                    {data[`act_${i}_full`]}
+                  </Typography>
+                </Box>
+              );
+            }
+            return null;
+          })}
+        </Paper>
+      );
+    }
+    return null;
+  };
+
+  const ticks = Array.from({ length: totalDays }).map((_, i) => i);
+
+  return (
+    <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: '#f4f7f9', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
+
+        <Box sx={{ mb: 3 }}>
+          <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid #e2e8f0', borderRadius: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <CalendarMonthIcon sx={{ mr: 1, color: '#3b82f6' }} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', color: '#1e293b' }}>Turbine Installation Planning Workspace</Typography>
+            </Box>
+            <Typography variant="body2" sx={{ mb: 3, color: '#64748b' }}>
+              Select Scope Boundaries, Cluster, and Category to manage deployment targets and generate baseline activity charts.
+            </Typography>
+
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+              <FormControl size="small" sx={{ flex: 1, minWidth: 140 }}>
+                <InputLabel>Project</InputLabel>
+                <Select label="Project" defaultValue="Envision TN">
+                  <MenuItem value="Envision TN">Envision TN</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ flex: 1, minWidth: 180 }}>
+                <InputLabel>Windfarm</InputLabel>
+                <Select label="Windfarm" defaultValue="Udangudi Wind Park">
+                  <MenuItem value="Udangudi Wind Park">Udangudi Wind Park</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ flex: 1, minWidth: 200 }}>
+                <InputLabel>Cluster</InputLabel>
+                <Select label="Cluster" defaultValue="Udangudi North Cluster">
+                  <MenuItem value="Udangudi North Cluster">Udangudi North Cluster</MenuItem>
+                  <MenuItem value="Udangudi South Cluster">Udangudi South Cluster</MenuItem>
+                </Select>
+              </FormControl>
+
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => setCategoryFilter('')}
+                sx={{ height: 40 }}
+              >
+                Clear Filters
+              </Button>
+            </Box>
+          </Paper>
+        </Box>
+
+        <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4, alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box component="span" sx={{ display: 'inline-flex', p: 1, bgcolor: '#e0e7ff', borderRadius: 2, color: '#4f46e5' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+              </Box>
+              Graphic Gantt Chart View
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <FormControl size="small" sx={{ minWidth: 200, bgcolor: '#fff' }}>
+                <InputLabel>Category Scope</InputLabel>
+                <Select
+                  label="Category Scope"
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                >
+                  <MenuItem value="">All Categories</MenuItem>
+                  {availableCategories.map(cat => (
+                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 220, bgcolor: '#fff' }}>
+                <InputLabel>Select Week</InputLabel>
+                <Select
+                  label="Select Week"
+                  value={selectedWeekId}
+                  onChange={(e) => setSelectedWeekId(e.target.value)}
+                >
+                  {weeksData.map(w => (
+                    <MenuItem key={w.week_id} value={w.week_id}>{w.week_id}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
+
+          <Box sx={{ width: '100%', overflowX: 'auto' }} ref={scrollContainerRef}>
+            <Box sx={{ minWidth: '100%', width: chartWidth, height: Math.max(300, chartData.length * 70) }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  layout="vertical"
+                  margin={{ top: 20, right: 40, left: 20, bottom: 20 }}
+                  barSize={36}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke="#e2e8f0" />
+                  <XAxis
+                    type="number"
+                    domain={[0, totalDays - 1]}
+                    ticks={ticks}
+                    tick={<CustomXAxisTick />}
+                    stroke="#e2e8f0"
+                    axisLine={true}
+                    tickLine={true}
+                    height={60}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    stroke="#64748b"
+                    tick={{ fontWeight: 700, fill: '#334155' }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={100}
+                  />
+                  <Tooltip
+                    content={<CustomTooltip />}
+                    cursor={{ fill: '#f8fafc', opacity: 0.6 }}
+                  />
+
+                  {/* Dynamically render stacked bars based on the max number of activities across all turbines */}
+                  {Array.from({ length: maxActs }).map((_, i) => (
+                    <React.Fragment key={`group-${i}`}>
+                      {/* Invisible gap block pushes the actual activity block to the correct start date */}
+                      <Bar dataKey={`gap_${i}`} stackId="a" fill="transparent" isAnimationActive={false} />
+                      {/* Colored activity block */}
+                      <Bar dataKey={`act_${i}_duration`} stackId="a" radius={[4, 4, 4, 4]}>
+                        <LabelList dataKey={`act_${i}_name`} content={<CustomBarLabel />} />
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${i}-${index}`} fill={entry[`act_${i}_color`] || 'transparent'} />
+                        ))}
+                      </Bar>
+                    </React.Fragment>
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
+          </Box>
+        </Paper>
+      </Box>
+    </Box>
+  );
+};
+
+export default WeeklyActivityChart;
