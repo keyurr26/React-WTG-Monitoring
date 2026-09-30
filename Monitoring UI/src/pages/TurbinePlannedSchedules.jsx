@@ -5,115 +5,14 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import '../styles/TurbinePlannedSchedules.css';
 
-const rawData = {
-  "week_start": "2026-09-28",
-  "week_end": "2026-10-04",
-  "turbines": [
-    {
-      "project": "Envision TN",
-      "windfarm": "Udangudi Wind Park",
-      "turbine": "ANC04",
-      "planned_master_id": 68,
-      "total_week_activities": 5,
-      "activities": [
-        { "id": 1135, "activity_id": 26, "activity_name": "SOIL (2 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-09-28", "act_planned_end_date": "2026-09-29", "status": "Pending" },
-        { "id": 1136, "activity_id": 27, "activity_name": "EXC (3 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-09-30", "act_planned_end_date": "2026-10-02", "status": "Pending" },
-        { "id": 1137, "activity_id": 28, "activity_name": "PCC (1 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-10-03", "act_planned_end_date": "2026-10-03", "status": "Pending" },
-        { "id": 1138, "activity_id": 29, "activity_name": "CONDUIT (1 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-10-03", "act_planned_end_date": "2026-10-03", "status": "Pending" },
-        { "id": 1139, "activity_id": 30, "activity_name": "ANCHOR (2 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-10-04", "act_planned_end_date": "2026-10-05", "status": "Pending" }
-      ]
-    },
-    {
-      "project": "Envision TN",
-      "windfarm": "Udangudi Wind Park",
-      "turbine": "ANC07",
-      "planned_master_id": 69,
-      "total_week_activities": 5,
-      "activities": [
-        { "id": 1141, "activity_id": 26, "activity_name": "SOIL (2 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-09-28", "act_planned_end_date": "2026-09-29", "status": "Pending" },
-        { "id": 1142, "activity_id": 27, "activity_name": "EXC (3 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-09-30", "act_planned_end_date": "2026-10-02", "status": "Pending" },
-        { "id": 1143, "activity_id": 28, "activity_name": "PCC (1 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-10-03", "act_planned_end_date": "2026-10-03", "status": "Pending" },
-        { "id": 1144, "activity_id": 29, "activity_name": "CONDUIT (1 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-10-03", "act_planned_end_date": "2026-10-03", "status": "Pending" },
-        { "id": 1145, "activity_id": 30, "activity_name": "ANCHOR (2 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-10-04", "act_planned_end_date": "2026-10-05", "status": "Pending" }
-      ]
-    },
-    {
-      "project": "Envision TN",
-      "windfarm": "Udangudi Wind Park",
-      "turbine": "LOC-0044",
-      "planned_master_id": 70,
-      "total_week_activities": 2,
-      "activities": [
-        { "id": 1147, "activity_id": 26, "activity_name": "SOIL (2 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-09-30", "act_planned_end_date": "2026-10-01", "status": "Pending" },
-        { "id": 1148, "activity_id": 27, "activity_name": "EXC (3 days)", "category": "FOUNDATION", "act_planned_start_date": "2026-10-02", "act_planned_end_date": "2026-10-04", "status": "Pending" }
-      ]
-    },
-    {
-      "project": "Envision TN",
-      "windfarm": "Udangudi Wind Park",
-      "turbine": "DWK035",
-      "planned_master_id": 101,
-      "total_week_activities": 5,
-      "activities": [
-        { "id": 2001, "activity_id": 50, "activity_name": "T1 Installation", "category": "WTG", "act_planned_start_date": "2026-10-01", "act_planned_end_date": "2026-10-02", "status": "Pending" },
-        { "id": 2002, "activity_id": 51, "activity_name": "Tower Installation", "category": "WTG", "act_planned_start_date": "2026-10-03", "act_planned_end_date": "2026-10-04", "status": "Pending" },
-        { "id": 2003, "activity_id": 52, "activity_name": "Nacelle Installation", "category": "WTG", "act_planned_start_date": "2026-10-05", "act_planned_end_date": "2026-10-05", "status": "Pending" },
-        { "id": 2004, "activity_id": 53, "activity_name": "Rotor Hub Installation", "category": "WTG", "act_planned_start_date": "2026-10-06", "act_planned_end_date": "2026-10-07", "status": "Pending" },
-        { "id": 2005, "activity_id": 54, "activity_name": "Blade Installation", "category": "WTG", "act_planned_start_date": "2026-10-08", "act_planned_end_date": "2026-10-09", "status": "Pending" }
-      ]
-    },
-    {
-      "project": "Envision TN",
-      "windfarm": "Udangudi Wind Park",
-      "turbine": "DWK177",
-      "planned_master_id": 102,
-      "total_week_activities": 3,
-      "activities": [
-        { "id": 2011, "activity_id": 50, "activity_name": "T1 Installation", "category": "WTG", "act_planned_start_date": "2026-10-01", "act_planned_end_date": "2026-10-02", "status": "Pending" },
-        { "id": 2012, "activity_id": 51, "activity_name": "Tower Installation", "category": "WTG", "act_planned_start_date": "2026-10-03", "act_planned_end_date": "2026-10-04", "status": "Pending" },
-        { "id": 2013, "activity_id": 52, "activity_name": "Nacelle Installation", "category": "WTG", "act_planned_start_date": "2026-10-05", "act_planned_end_date": "2026-10-05", "status": "Pending" }
-      ]
-    },
-    {
-      "project": "Envision TN",
-      "windfarm": "Udangudi Wind Park",
-      "turbine": "DWK036",
-      "planned_master_id": 103,
-      "total_week_activities": 2,
-      "activities": [
-        { "id": 2021, "activity_id": 50, "activity_name": "T1 Installation", "category": "WTG", "act_planned_start_date": "2026-10-01", "act_planned_end_date": "2026-10-02", "status": "Pending" },
-        { "id": 2022, "activity_id": 51, "activity_name": "Tower Installation", "category": "WTG", "act_planned_start_date": "2026-10-03", "act_planned_end_date": "2026-10-04", "status": "Pending" }
-      ]
-    },
-    {
-      "project": "Envision TN",
-      "windfarm": "Udangudi Wind Park",
-      "turbine": "DWK176",
-      "planned_master_id": 104,
-      "total_week_activities": 3,
-      "activities": [
-        { "id": 2031, "activity_id": 50, "activity_name": "T1 Installation", "category": "WTG", "act_planned_start_date": "2026-10-01", "act_planned_end_date": "2026-10-02", "status": "Pending" },
-        { "id": 2032, "activity_id": 51, "activity_name": "Tower Installation", "category": "WTG", "act_planned_start_date": "2026-10-03", "act_planned_end_date": "2026-10-04", "status": "Pending" },
-        { "id": 2033, "activity_id": 52, "activity_name": "Nacelle Installation", "category": "WTG", "act_planned_start_date": "2026-10-05", "act_planned_end_date": "2026-10-05", "status": "Pending" }
-      ]
-    },
-    {
-      "project": "Envision TN",
-      "windfarm": "Udangudi Wind Park",
-      "turbine": "DWK032",
-      "planned_master_id": 105,
-      "total_week_activities": 2,
-      "activities": [
-        { "id": 2041, "activity_id": 50, "activity_name": "T1 Installation", "category": "WTG", "act_planned_start_date": "2026-10-01", "act_planned_end_date": "2026-10-02", "status": "Pending" },
-        { "id": 2042, "activity_id": 51, "activity_name": "Tower Installation", "category": "WTG", "act_planned_start_date": "2026-10-03", "act_planned_end_date": "2026-10-04", "status": "Pending" }
-      ]
-    }
-  ]
-};
+import { weeksData } from '../data/mockData';
+
+const rawData = weeksData[0];
 
 const TurbinePlannedSchedules = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [expandedTurbines, setExpandedTurbines] = useState({});
+  const [showAllData, setShowAllData] = useState(false);
 
   const toggleTurbine = (turbine) => {
     setExpandedTurbines(prev => ({ ...prev, [turbine]: !prev[turbine] }));
@@ -184,11 +83,18 @@ const TurbinePlannedSchedules = () => {
               </tr>
             </thead>
             <tbody>
-              {rawData.turbines.map((t) => {
-                const filteredActivities = t.activities.filter(a => categoryFilter === '' || a.category === categoryFilter);
-                if (filteredActivities.length === 0) return null;
+              {(() => {
+                const filteredTurbines = rawData.turbines.filter(t => 
+                  t.activities.some(a => categoryFilter === '' || a.category === categoryFilter)
+                );
+                const displayTurbines = showAllData ? filteredTurbines : filteredTurbines.slice(0, 5);
+                
+                return (
+                  <>
+                    {displayTurbines.map((t) => {
+                      const filteredActivities = t.activities.filter(a => categoryFilter === '' || a.category === categoryFilter);
 
-                const isExpanded = expandedTurbines[t.turbine];
+                      const isExpanded = expandedTurbines[t.turbine];
                 const firstAct = filteredActivities[0];
                 const lastAct = filteredActivities[filteredActivities.length - 1];
 
@@ -260,11 +166,27 @@ const TurbinePlannedSchedules = () => {
                   </React.Fragment>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              {filteredTurbines.length > 5 && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '16px', backgroundColor: '#f8fafc', borderTop: '1px dashed #cbd5e1' }}>
+                    <Button 
+                      variant="outlined" 
+                      onClick={() => setShowAllData(!showAllData)}
+                      sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
+                    >
+                      {showAllData ? 'Show Less Turbines' : `View All ${filteredTurbines.length} Turbines`}
+                    </Button>
+                  </td>
+                </tr>
+              )}
+            </>
+          );
+        })()}
+        </tbody>
+      </table>
     </div>
+  </div>
+</div>
   );
 };
 

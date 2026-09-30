@@ -9,10 +9,14 @@ import {
   ResponsiveContainer,
   Cell,
   LabelList,
+  Label,
 } from 'recharts';
-import { weeksData } from './WeeklyActivityDashboard';
+import { weeksData } from '../data/mockData';
 import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Button } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import DownloadIcon from '@mui/icons-material/Download';
+import '../styles/WeeklyActivityChart.css';
 
 const activityColors = {
   SOIL: '#8b5cf6',
@@ -37,7 +41,9 @@ const WeeklyActivityChart = () => {
   const [selectedWeekId, setSelectedWeekId] = useState(weeksData[0].week_id);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [chartWidth, setChartWidth] = useState(1000);
+  const [displayLimit, setDisplayLimit] = useState(7);
   const scrollContainerRef = useRef(null);
+  const chartTopRef = useRef(null);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -65,7 +71,7 @@ const WeeklyActivityChart = () => {
     return Array.from(cats);
   }, [rawData]);
 
-  const { chartData, maxActs, weekStart, totalDays } = useMemo(() => {
+  const { chartData, totalItems, maxActs, weekStart, totalDays } = useMemo(() => {
     const weekStartObj = parseDateStr(rawData.week_start);
     let maxActivities = 0;
     let maxDate = weekStartObj;
@@ -89,16 +95,22 @@ const WeeklyActivityChart = () => {
           if (end > maxDate) maxDate = end;
 
           // Calculate transparent gap from previous activity's end
-          const gapDays = Math.max(0, (start - currentEnd) / 86400000);
-          const durationDays = Math.round((end - start) / 86400000) + 1;
+          const originalGap = Math.max(0, (start - currentEnd) / 86400000);
+          const originalDuration = Math.round((end - start) / 86400000) + 1;
+
+          // Introduce a physical gap between blocks so they don't visually touch when transparent
+          // Subtract 0.1 days from duration to make the block slightly smaller
+          // Add 0.05 to the first gap, and 0.1 to all subsequent gaps to align them properly
+          const renderGap = i === 0 ? originalGap + 0.05 : originalGap + 0.1;
+          const renderDuration = Math.max(0.1, originalDuration - 0.1);
 
           const baseName = act.activity_name.split(' (')[0];
           const color = activityColors[baseName.toUpperCase()] || '#cbd5e1';
 
-          const displayLabel = `${baseName} (${durationDays} day${durationDays !== 1 ? 's' : ''})`;
+          const displayLabel = `${baseName} (${originalDuration} day${originalDuration !== 1 ? 's' : ''})`;
 
-          obj[`gap_${i}`] = gapDays;
-          obj[`act_${i}_duration`] = durationDays;
+          obj[`gap_${i}`] = renderGap;
+          obj[`act_${i}_duration`] = renderDuration;
           obj[`act_${i}_name`] = displayLabel;
           obj[`act_${i}_color`] = color;
           obj[`act_${i}_full`] = displayLabel;
@@ -109,11 +121,13 @@ const WeeklyActivityChart = () => {
       }
     });
 
-    // Make sure we always show at least the standard 7 days
-    const computedDays = Math.max(7, Math.round((maxDate - weekStartObj) / 86400000) + 1);
+    // Make sure we always show at least the standard 7 days, +2 for the end boundary column
+    const computedDays = Math.max(7, Math.round((maxDate - weekStartObj) / 86400000) + 2);
+    
+    const finalData = formattedData.slice(0, displayLimit);
 
-    return { chartData: formattedData, maxActs: maxActivities, weekStart: weekStartObj, totalDays: computedDays };
-  }, [rawData, categoryFilter]);
+    return { chartData: finalData, totalItems: formattedData.length, maxActs: maxActivities, weekStart: weekStartObj, totalDays: computedDays };
+  }, [rawData, categoryFilter, displayLimit]);
 
   const CustomBarLabel = (props) => {
     const { x, y, width, height, value } = props;
@@ -121,25 +135,8 @@ const WeeklyActivityChart = () => {
 
     return (
       <foreignObject x={x} y={y} width={width} height={height}>
-        <div style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          paddingLeft: '12px',
-          paddingRight: '20px',
-          boxSizing: 'border-box'
-        }}>
-          <span style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            color: '#ffffff',
-            fontSize: '13px',
-            fontWeight: 600,
-            display: 'block',
-            width: '100%'
-          }}>
+        <div className="gantt-bar-label-container">
+          <span className="gantt-bar-label-text">
             {value}
           </span>
         </div>
@@ -238,15 +235,13 @@ const WeeklyActivityChart = () => {
           </Paper>
         </Box>
 
-        <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+        <Paper ref={chartTopRef} elevation={0} sx={{ p: 3, borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4, alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box component="span" sx={{ display: 'inline-flex', p: 1, bgcolor: '#e0e7ff', borderRadius: 2, color: '#4f46e5' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-              </Box>
-              Graphic Gantt Chart View
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <h3 className="chart-view-title">
+              <BarChartIcon sx={{ color: '#0f172a', fontSize: 32 }} />
+              Chart View
+            </h3>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <FormControl size="small" sx={{ minWidth: 200, bgcolor: '#fff' }}>
                 <InputLabel>Category Scope</InputLabel>
                 <Select
@@ -272,6 +267,15 @@ const WeeklyActivityChart = () => {
                   ))}
                 </Select>
               </FormControl>
+              
+              <Button 
+                variant="contained" 
+                color="primary"
+                startIcon={<DownloadIcon />}
+                sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px', height: '40px', whiteSpace: 'nowrap' }}
+              >
+                Download Report
+              </Button>
             </Box>
           </Box>
 
@@ -281,20 +285,22 @@ const WeeklyActivityChart = () => {
                 <BarChart
                   data={chartData}
                   layout="vertical"
-                  margin={{ top: 20, right: 40, left: 20, bottom: 20 }}
+                  margin={{ top: 20, right: 40, left: 20, bottom: 30 }}
                   barSize={36}
                 >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke="#e2e8f0" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke="#cbd5e1" />
                   <XAxis
                     type="number"
                     domain={[0, totalDays - 1]}
                     ticks={ticks}
                     tick={<CustomXAxisTick />}
-                    stroke="#e2e8f0"
+                    stroke="#cbd5e1"
                     axisLine={true}
                     tickLine={true}
                     height={60}
-                  />
+                  >
+                    <Label value="Plan Dates" offset={-15} position="insideBottom" fill="#475569" fontSize={14} fontWeight="bold" />
+                  </XAxis>
                   <YAxis
                     type="category"
                     dataKey="name"
@@ -302,8 +308,10 @@ const WeeklyActivityChart = () => {
                     tick={{ fontWeight: 700, fill: '#334155' }}
                     axisLine={false}
                     tickLine={false}
-                    width={100}
-                  />
+                    width={120}
+                  >
+                    <Label value="Turbine Location" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fill="#475569" fontSize={14} fontWeight="bold" />
+                  </YAxis>
                   <Tooltip
                     content={<CustomTooltip />}
                     cursor={{ fill: '#f8fafc', opacity: 0.6 }}
@@ -315,13 +323,13 @@ const WeeklyActivityChart = () => {
                       {/* Invisible gap block pushes the actual activity block to the correct start date */}
                       <Bar dataKey={`gap_${i}`} stackId="a" fill="transparent" isAnimationActive={false} />
                       {/* Colored activity block */}
-                      <Bar dataKey={`act_${i}_duration`} stackId="a" radius={[12, 12, 12, 12]}>
+                      <Bar dataKey={`act_${i}_duration`} stackId="a" radius={[12, 12, 12, 12]} animationDuration={300}>
                         <LabelList dataKey={`act_${i}_name`} content={<CustomBarLabel />} />
                         {chartData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${i}-${index}`} 
-                            fill={entry[`act_${i}_color`] || 'transparent'} 
-                            stroke="#ffffff"
+                          <Cell
+                            key={`cell-${i}-${index}`}
+                            fill={entry[`act_${i}_color`] || 'transparent'}
+                            stroke="transparent"
                             strokeWidth={entry[`act_${i}_color`] ? 4 : 0}
                           />
                         ))}
@@ -332,6 +340,33 @@ const WeeklyActivityChart = () => {
               </ResponsiveContainer>
             </Box>
           </Box>
+
+          {totalItems > displayLimit && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, pt: 2, borderTop: '1px dashed #e2e8f0' }}>
+              <Button 
+                variant="outlined" 
+                onClick={() => setDisplayLimit(prev => prev + 7)}
+                sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
+              >
+                Load More Turbines
+              </Button>
+            </Box>
+          )}
+          {totalItems <= displayLimit && totalItems > 7 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, pt: 2, borderTop: '1px dashed #e2e8f0' }}>
+              <Button 
+                variant="outlined" 
+                onClick={() => {
+                  setDisplayLimit(7);
+                  chartTopRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
+              >
+                Show Less
+              </Button>
+            </Box>
+          )}
+
         </Paper>
       </Box>
     </Box>

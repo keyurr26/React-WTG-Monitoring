@@ -1,16 +1,33 @@
-# React + Vite
+# WTG Monitoring UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This is the front-end user interface for the WTG Monitoring project. It is built using React and Vite.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Before you begin, make sure you have the following installed on your Windows machine:
+1. Node.js (download from nodejs.org)
+2. A code editor like VS Code
 
-## React Compiler
+## How to run the project on Windows
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Follow these simple steps to run the project locally on your machine:
 
-## Expanding the Oxlint configuration
+1. Open your terminal (or Command Prompt / PowerShell)
+2. Navigate to the project folder where this README file is located.
+3. Install all the required packages by running:
+   ```bash
+   npm install
+   ```
+4. Once the installation is complete, start the development server by running:
+   ```bash
+   npm run dev
+   ```
+5. The terminal will provide a local URL (usually http://localhost:5173). Hold the `Ctrl` key and click the link to open the project in your web browser.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## How to build for production
+
+If you need to create a production-ready build, run:
+```bash
+npm run build
+```
+This will generate a `dist` folder containing the compiled application.
